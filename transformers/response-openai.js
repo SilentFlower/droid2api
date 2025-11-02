@@ -1,4 +1,4 @@
-import { logDebug } from '../logger.js';
+import { logDebug } from '../src/worker-auth.js';
 
 export class OpenAIResponseTransformer {
   constructor(model, requestId) {

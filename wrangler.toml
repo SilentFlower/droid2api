@@ -1,0 +1,19 @@
+name = "droid2api-worker"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# 启用 Node.js 兼容模式（支持部分 Node.js API）
+node_compat = true
+
+# 环境变量配置（部署时需要设置）
+# 使用 wrangler secret put <KEY_NAME> 命令设置敏感信息
+# 或在 Cloudflare Dashboard 中配置
+
+# [vars]
+# 非敏感配置可以直接写在这里
+# DEV_MODE = "false"
+
+# 敏感信息通过 secrets 设置（不要写在这里）:
+# wrangler secret put FACTORY_API_KEY
+# wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put OPENAI_API_KEY

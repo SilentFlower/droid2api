@@ -1,5 +1,5 @@
-import { logDebug } from '../logger.js';
-import { getSystemPrompt, getModelReasoning, getUserAgent } from '../config.js';
+import { logDebug } from '../src/worker-auth.js';
+import { getSystemPrompt, getModelReasoning, getUserAgent } from '../src/worker-config.js';
 
 export function transformToOpenAI(openaiRequest) {
   logDebug('Transforming OpenAI request to target OpenAI format');

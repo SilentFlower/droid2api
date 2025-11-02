@@ -1,5 +1,5 @@
-import { logDebug } from '../logger.js';
-import { getSystemPrompt, getUserAgent } from '../config.js';
+import { logDebug } from '../src/worker-auth.js';
+import { getSystemPrompt, getUserAgent } from '../src/worker-config.js';
 
 export function transformToCommon(openaiRequest) {
   logDebug('Transforming OpenAI request to Common format');
