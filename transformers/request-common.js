@@ -1,4 +1,4 @@
-import { filterMessages, filterText } from '../message-filter.js';
+import { filterText } from '../message-filter.js';
 
 export function transformToCommon(openaiRequest, options = {}) {
   const { getSystemPrompt, logDebug } = options;
@@ -7,8 +7,8 @@ export function transformToCommon(openaiRequest, options = {}) {
     logDebug('Transforming OpenAI request to Common format');
   }
   
-  // Filter messages to replace AI agent names with Droid
-  const filteredMessages = filterMessages(openaiRequest.messages);
+  // Messages are already filtered in routes.js, use them directly
+  const filteredMessages = openaiRequest.messages;
 
   // 基本保持 OpenAI 格式，只在 messages 前面插入 system 消息
   const commonRequest = {

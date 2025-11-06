@@ -1,4 +1,4 @@
-import { filterMessages, filterSystemContent } from '../message-filter.js';
+import { filterSystemContent } from '../message-filter.js';
 
 export function transformToAnthropic(openaiRequest, options = {}) {
   const { getSystemPrompt, getModelReasoning, logDebug } = options;
@@ -26,8 +26,8 @@ export function transformToAnthropic(openaiRequest, options = {}) {
     anthropicRequest.max_tokens = 4096;
   }
 
-  // Filter messages to replace AI agent names with Droid
-  const filteredMessages = filterMessages(openaiRequest.messages);
+  // Messages are already filtered in routes.js, use them directly
+  const filteredMessages = openaiRequest.messages;
 
   // Extract system message(s) and transform other messages
   let systemContent = [];
