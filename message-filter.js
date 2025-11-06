@@ -1,5 +1,3 @@
-import { logDebug } from './logger.js';
-
 /**
  * List of AI agent names to be replaced with "Droid"
  * Case-insensitive matching
@@ -51,9 +49,11 @@ export function filterText(text) {
     }
   }
 
-  if (hasReplacement) {
-    logDebug('Message filtered: AI agent names replaced with Droid');
-  }
+  // 注意：这里移除了 logDebug 调用以避免依赖 logger.js
+  // 如果需要调试，可以取消注释下面这行
+  // if (hasReplacement) {
+  //   console.log('[DEBUG] Message filtered: AI agent names replaced with Droid');
+  // }
 
   return filtered;
 }
