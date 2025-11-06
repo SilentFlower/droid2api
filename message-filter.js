@@ -26,7 +26,8 @@ const AI_AGENT_PATTERNS = [
   /Continue/gi,
   /Tabnine/gi,
   /Codeium/gi,
-  /CodeWhisperer/gi
+  /CodeWhisperer/gi,
+  /Roo\s*Code/gi
 ];
 
 /**
