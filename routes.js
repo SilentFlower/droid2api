@@ -127,13 +127,8 @@ async function handleChatCompletions(req, res) {
       'user-agent': clientHeaders['user-agent']
     });
 
-    // Filter messages and update request body with redirected model ID before transformation
-    const filteredMessages = filterMessages(openaiRequest.messages);
-    const requestWithRedirectedModel = {
-      ...openaiRequest,
-      model: modelId,
-      messages: filteredMessages
-    };
+    // Update request body with redirected model ID before transformation
+    const requestWithRedirectedModel = { ...openaiRequest, model: modelId };
 
     // 准备 transformer 选项
     const transformerOptions = {

@@ -1,4 +1,4 @@
-import { filterText } from '../message-filter.js';
+import { filterMessages, filterText } from '../message-filter.js';
 
 export function transformToOpenAI(openaiRequest, options = {}) {
   const { getSystemPrompt, getModelReasoning, logDebug } = options;
@@ -25,8 +25,8 @@ export function transformToOpenAI(openaiRequest, options = {}) {
     targetRequest.max_output_tokens = openaiRequest.max_completion_tokens;
   }
 
-  // Messages are already filtered in routes.js, use them directly
-  const filteredMessages = openaiRequest.messages;
+  // Filter messages to replace AI agent names with Droid
+  const filteredMessages = filterMessages(openaiRequest.messages);
 
   // Transform messages to input
   if (filteredMessages && Array.isArray(filteredMessages)) {
