@@ -1,9 +1,11 @@
-import { logDebug } from '../logger.js';
-import { getSystemPrompt, getUserAgent } from '../config.js';
 import { filterMessages, filterText } from '../message-filter.js';
 
-export function transformToCommon(openaiRequest) {
-  logDebug('Transforming OpenAI request to Common format');
+export function transformToCommon(openaiRequest, options = {}) {
+  const { getSystemPrompt, logDebug } = options;
+  
+  if (logDebug) {
+    logDebug('Transforming OpenAI request to Common format');
+  }
   
   // Filter messages to replace AI agent names with Droid
   const filteredMessages = filterMessages(openaiRequest.messages);
@@ -14,7 +16,7 @@ export function transformToCommon(openaiRequest) {
     messages: filteredMessages
   };
 
-  const systemPrompt = getSystemPrompt();
+  const systemPrompt = getSystemPrompt ? getSystemPrompt() : '';
   
   if (systemPrompt) {
     // 检查是否已有 system 消息
@@ -45,11 +47,14 @@ export function transformToCommon(openaiRequest) {
     }
   }
 
-  logDebug('Transformed Common request', commonRequest);
+  if (logDebug) {
+    logDebug('Transformed Common request', commonRequest);
+  }
   return commonRequest;
 }
 
-export function getCommonHeaders(authHeader, clientHeaders = {}) {
+export function getCommonHeaders(authHeader, clientHeaders = {}, options = {}) {
+  const { getUserAgent } = options;
   // Generate unique IDs if not provided
   const sessionId = clientHeaders['x-session-id'] || generateUUID();
   const messageId = clientHeaders['x-assistant-message-id'] || generateUUID();
@@ -62,7 +67,7 @@ export function getCommonHeaders(authHeader, clientHeaders = {}) {
     'x-factory-client': 'cli',
     'x-session-id': sessionId,
     'x-assistant-message-id': messageId,
-    'user-agent': getUserAgent(),
+    'user-agent': getUserAgent ? getUserAgent() : 'factory-cli/0.22.2',
     'connection': 'keep-alive'
   };
 

@@ -1,12 +1,13 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { 
-  getConfig, 
-  getModelById, 
-  getEndpointByType, 
+import {
+  getConfig,
+  getModelById,
+  getEndpointByType,
   getRedirectedModelId,
   getSystemPrompt,
-  getModelReasoning
+  getModelReasoning,
+  getUserAgent
 } from './worker-config.js';
 import { getApiKey, logInfo, logError, logDebug } from './worker-auth.js';
 
@@ -103,14 +104,22 @@ app.post('/v1/chat/completions', async (c) => {
     // 更新请求体中的模型 ID
     const requestWithRedirectedModel = { ...openaiRequest, model: modelId };
 
+    // 准备 transformer 选项
+    const transformerOptions = {
+      getSystemPrompt,
+      getModelReasoning,
+      getUserAgent,
+      logDebug
+    };
+
     // 根据模型类型转换请求
     if (model.type === 'anthropic') {
-      transformedRequest = transformToAnthropic(requestWithRedirectedModel);
+      transformedRequest = transformToAnthropic(requestWithRedirectedModel, transformerOptions);
       const isStreaming = openaiRequest.stream === true;
-      headers = getAnthropicHeaders(authHeader, clientHeaders, isStreaming, modelId);
+      headers = getAnthropicHeaders(authHeader, clientHeaders, isStreaming, modelId, transformerOptions);
     } else if (model.type === 'openai') {
-      transformedRequest = transformToOpenAI(requestWithRedirectedModel);
-      headers = getOpenAIHeaders(authHeader, clientHeaders);
+      transformedRequest = transformToOpenAI(requestWithRedirectedModel, transformerOptions);
+      headers = getOpenAIHeaders(authHeader, clientHeaders, transformerOptions);
     } else if (model.type === 'common') {
       // common 类型直接转发
       transformedRequest = requestWithRedirectedModel;

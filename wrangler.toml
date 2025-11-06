@@ -5,6 +5,19 @@ compatibility_date = "2024-09-23"
 # 启用 Node.js 兼容模式（支持部分 Node.js API）
 compatibility_flags = ["nodejs_compat"]
 
+# 规则：只包含 Workers 需要的文件
+[build]
+command = ""
+
+# 排除不需要的文件（Node.js 版本的文件）
+[site]
+bucket = ""
+
+# 明确指定要包含的文件模式
+rules = [
+  { type = "ESModule", globs = ["src/**/*.js", "transformers/**/*.js"], fallthrough = true }
+]
+
 # 环境变量配置（部署时需要设置）
 # 使用 wrangler secret put <KEY_NAME> 命令设置敏感信息
 # 或在 Cloudflare Dashboard 中配置

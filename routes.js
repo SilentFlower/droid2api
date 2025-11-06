@@ -1,6 +1,6 @@
 import express from 'express';
 import fetch from 'node-fetch';
-import { getConfig, getModelById, getEndpointByType, getSystemPrompt, getModelReasoning, getRedirectedModelId } from './config.js';
+import { getConfig, getModelById, getEndpointByType, getSystemPrompt, getModelReasoning, getRedirectedModelId, getUserAgent } from './config.js';
 import { logInfo, logDebug, logError, logRequest, logResponse } from './logger.js';
 import { transformToAnthropic, getAnthropicHeaders } from './transformers/request-anthropic.js';
 import { transformToOpenAI, getOpenAIHeaders } from './transformers/request-openai.js';
@@ -130,16 +130,24 @@ async function handleChatCompletions(req, res) {
     // Update request body with redirected model ID before transformation
     const requestWithRedirectedModel = { ...openaiRequest, model: modelId };
 
+    // 准备 transformer 选项
+    const transformerOptions = {
+      getSystemPrompt,
+      getModelReasoning,
+      getUserAgent,
+      logDebug
+    };
+
     if (model.type === 'anthropic') {
-      transformedRequest = transformToAnthropic(requestWithRedirectedModel);
+      transformedRequest = transformToAnthropic(requestWithRedirectedModel, transformerOptions);
       const isStreaming = openaiRequest.stream === true;
-      headers = getAnthropicHeaders(authHeader, clientHeaders, isStreaming, modelId);
+      headers = getAnthropicHeaders(authHeader, clientHeaders, isStreaming, modelId, transformerOptions);
     } else if (model.type === 'openai') {
-      transformedRequest = transformToOpenAI(requestWithRedirectedModel);
-      headers = getOpenAIHeaders(authHeader, clientHeaders);
+      transformedRequest = transformToOpenAI(requestWithRedirectedModel, transformerOptions);
+      headers = getOpenAIHeaders(authHeader, clientHeaders, transformerOptions);
     } else if (model.type === 'common') {
-      transformedRequest = transformToCommon(requestWithRedirectedModel);
-      headers = getCommonHeaders(authHeader, clientHeaders);
+      transformedRequest = transformToCommon(requestWithRedirectedModel, transformerOptions);
+      headers = getCommonHeaders(authHeader, clientHeaders, transformerOptions);
     } else {
       return res.status(500).json({ error: `Unknown endpoint type: ${model.type}` });
     }
@@ -286,8 +294,16 @@ async function handleDirectResponses(req, res) {
 
     const clientHeaders = req.headers;
     
+    // 准备 transformer 选项
+    const transformerOptions = {
+      getSystemPrompt,
+      getModelReasoning,
+      getUserAgent,
+      logDebug
+    };
+    
     // 获取 headers
-    const headers = getOpenAIHeaders(authHeader, clientHeaders);
+    const headers = getOpenAIHeaders(authHeader, clientHeaders, transformerOptions);
 
     // Filter messages and instructions to replace AI agent names with Droid
     const filteredInput = filterMessages(openaiRequest.input);
@@ -434,9 +450,17 @@ async function handleDirectMessages(req, res) {
 
     const clientHeaders = req.headers;
     
+    // 准备 transformer 选项
+    const transformerOptions = {
+      getSystemPrompt,
+      getModelReasoning,
+      getUserAgent,
+      logDebug
+    };
+    
     // 获取 headers
     const isStreaming = anthropicRequest.stream === true;
-    const headers = getAnthropicHeaders(authHeader, clientHeaders, isStreaming, modelId);
+    const headers = getAnthropicHeaders(authHeader, clientHeaders, isStreaming, modelId, transformerOptions);
 
     // Filter messages to replace AI agent names with Droid
     const filteredMessages = filterMessages(anthropicRequest.messages);

@@ -1,9 +1,11 @@
-import { logDebug } from '../logger.js';
-import { getSystemPrompt, getModelReasoning, getUserAgent } from '../config.js';
 import { filterMessages, filterText } from '../message-filter.js';
 
-export function transformToOpenAI(openaiRequest) {
-  logDebug('Transforming OpenAI request to target OpenAI format');
+export function transformToOpenAI(openaiRequest, options = {}) {
+  const { getSystemPrompt, getModelReasoning, logDebug } = options;
+  
+  if (logDebug) {
+    logDebug('Transforming OpenAI request to target OpenAI format');
+  }
   
   const targetRequest = {
     model: openaiRequest.model,
@@ -76,7 +78,7 @@ export function transformToOpenAI(openaiRequest) {
   }
 
   // Extract system message as instructions and prepend system prompt
-  const systemPrompt = getSystemPrompt();
+  const systemPrompt = getSystemPrompt ? getSystemPrompt() : '';
   const systemMessage = filteredMessages?.find(m => m.role === 'system');
   
   if (systemMessage) {
@@ -98,7 +100,7 @@ export function transformToOpenAI(openaiRequest) {
   }
 
   // Handle reasoning field based on model configuration
-  const reasoningLevel = getModelReasoning(openaiRequest.model);
+  const reasoningLevel = getModelReasoning ? getModelReasoning(openaiRequest.model) : null;
   if (reasoningLevel === 'auto') {
     // Auto mode: preserve original request's reasoning field exactly as-is
     if (openaiRequest.reasoning !== undefined) {
@@ -134,11 +136,14 @@ export function transformToOpenAI(openaiRequest) {
     targetRequest.parallel_tool_calls = openaiRequest.parallel_tool_calls;
   }
 
-  logDebug('Transformed target OpenAI request', targetRequest);
+  if (logDebug) {
+    logDebug('Transformed target OpenAI request', targetRequest);
+  }
   return targetRequest;
 }
 
-export function getOpenAIHeaders(authHeader, clientHeaders = {}) {
+export function getOpenAIHeaders(authHeader, clientHeaders = {}, options = {}) {
+  const { getUserAgent } = options;
   // Generate unique IDs if not provided
   const sessionId = clientHeaders['x-session-id'] || generateUUID();
   const messageId = clientHeaders['x-assistant-message-id'] || generateUUID();
@@ -150,7 +155,7 @@ export function getOpenAIHeaders(authHeader, clientHeaders = {}) {
     'x-factory-client': 'cli',
     'x-session-id': sessionId,
     'x-assistant-message-id': messageId,
-    'user-agent': getUserAgent(),
+    'user-agent': getUserAgent ? getUserAgent() : 'factory-cli/0.22.2',
     'connection': 'keep-alive'
   };
 

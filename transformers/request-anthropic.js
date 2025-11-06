@@ -1,9 +1,11 @@
-import { logDebug } from '../logger.js';
-import { getSystemPrompt, getModelReasoning, getUserAgent } from '../config.js';
 import { filterMessages, filterSystemContent } from '../message-filter.js';
 
-export function transformToAnthropic(openaiRequest) {
-  logDebug('Transforming OpenAI request to Anthropic format');
+export function transformToAnthropic(openaiRequest, options = {}) {
+  const { getSystemPrompt, getModelReasoning, logDebug } = options;
+  
+  if (logDebug) {
+    logDebug('Transforming OpenAI request to Anthropic format');
+  }
   
   const anthropicRequest = {
     model: openaiRequest.model,
@@ -87,7 +89,7 @@ export function transformToAnthropic(openaiRequest) {
   }
 
   // Add system parameter with system prompt prepended
-  const systemPrompt = getSystemPrompt();
+  const systemPrompt = getSystemPrompt ? getSystemPrompt() : '';
   if (systemPrompt || systemContent.length > 0) {
     anthropicRequest.system = [];
     // Prepend system prompt as first element if it exists
@@ -117,7 +119,7 @@ export function transformToAnthropic(openaiRequest) {
   }
 
   // Handle thinking field based on model configuration
-  const reasoningLevel = getModelReasoning(openaiRequest.model);
+  const reasoningLevel = getModelReasoning ? getModelReasoning(openaiRequest.model) : null;
   if (reasoningLevel === 'auto') {
     // Auto mode: preserve original request's thinking field exactly as-is
     if (openaiRequest.thinking !== undefined) {
@@ -155,11 +157,14 @@ export function transformToAnthropic(openaiRequest) {
       : [openaiRequest.stop];
   }
 
-  logDebug('Transformed Anthropic request', anthropicRequest);
+  if (logDebug) {
+    logDebug('Transformed Anthropic request', anthropicRequest);
+  }
   return anthropicRequest;
 }
 
-export function getAnthropicHeaders(authHeader, clientHeaders = {}, isStreaming = true, modelId = null) {
+export function getAnthropicHeaders(authHeader, clientHeaders = {}, isStreaming = true, modelId = null, options = {}) {
+  const { getUserAgent, getModelReasoning } = options;
   // Generate unique IDs if not provided
   const sessionId = clientHeaders['x-session-id'] || generateUUID();
   const messageId = clientHeaders['x-assistant-message-id'] || generateUUID();
@@ -174,13 +179,13 @@ export function getAnthropicHeaders(authHeader, clientHeaders = {}, isStreaming 
     'x-factory-client': 'cli',
     'x-session-id': sessionId,
     'x-assistant-message-id': messageId,
-    'user-agent': getUserAgent(),
+    'user-agent': getUserAgent ? getUserAgent() : 'factory-cli/0.22.2',
     'x-stainless-timeout': '600',
     'connection': 'keep-alive'
   }
 
   // Handle anthropic-beta header based on reasoning configuration
-  const reasoningLevel = modelId ? getModelReasoning(modelId) : null;
+  const reasoningLevel = (modelId && getModelReasoning) ? getModelReasoning(modelId) : null;
   let betaValues = [];
   
   // Add existing beta values from client headers
